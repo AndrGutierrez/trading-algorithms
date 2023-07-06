@@ -18,6 +18,7 @@ class BBANDS_MACD_Strategy(backtesting.Strategy):
 # Prepare the data
 # data = backtesting.get_data("AAPL", start_date="2022-01-01", end_date="2022-12-31")
 data=pd.read_csv('./data/ethereum/1h-2022-01-01T00:00.csv')
+# data=pd.read_csv('./data/bitcoin/1h-2022-01-01T00:00.csv')
 data.columns=[column.capitalize() for column in data.columns]
 
 # Initialize and run the backtest
@@ -25,5 +26,6 @@ bt = backtesting.Backtest(data, BBANDS_MACD_Strategy, cash=100000, commission=0.
 stats=bt.optimize(maximize="Equity Final [$]", timeperiod=range(20, 60, 5))
 bt.plot()
 
+print(stats)
 # Analyze the results
 # print(bt.get_profit_and_loss())

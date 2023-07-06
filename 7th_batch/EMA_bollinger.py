@@ -30,6 +30,7 @@ if __name__ == '__main__':
     bt = backtesting.Backtest(data, BBANDS_EMA_Strategy, cash=100000, commission=0.002)
     stats=bt.optimize(maximize="Equity Final [$]", timeperiod=range(20, 60, 5))
     # stats=bt.run()
+    print(stats)
     bt.plot()
 
     # Analyze the results

@@ -22,4 +22,5 @@ data.datetime = pd.to_datetime(data.datetime)
 data.columns=[column.capitalize() for column in data.columns]
 bt = Backtest(data, SundayPump, cash=100000, commission=.002)
 stats = bt.run()
+print(stats)
 bt.plot()
