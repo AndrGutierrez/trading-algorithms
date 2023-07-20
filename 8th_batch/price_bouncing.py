@@ -24,7 +24,7 @@ class RsiBounceStrategy(bt.Strategy):
             # self.sell()
 
 # Create a backtest
-data = pd.read_csv("./data/bitcoin/1h-2022-01-01T00:00.csv")
+data = pd.read_csv("./data/ethereum/1h-2022-01-01T00:00.csv")
 data.columns = [column.capitalize() for column in data.columns]
 bt = bt.Backtest(
     data,  # Your OHLC data
@@ -39,5 +39,5 @@ result = bt.optimize(maximize="Equity Final [$]", rsi_period=range(10, 30, 1), r
 # bt.run()
 
 # Print the performance metrics
-# print(result)
+print(result)
 bt.plot()

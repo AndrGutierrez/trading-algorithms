@@ -25,32 +25,22 @@ class RateOfChange(Strategy):
     sma_period = 4
     def init(self):
         # Calculate the average size of the candlesticks in the past 100 days
-        self.average_candle_size =self.I(calculate_candle_size, self.data.Open, self.data.Close, 150) 
+        self.average_candle_size =self.I(calculate_candle_size, self.data.Open, self.data.Close, 150)
         self.sma = self.I(talib.SMA, self.data.Close, timeperiod=self.sma_period)
 
     def next(self):
         bar_size= self.data.Close[-1]-self.data.Open[-1]
-        if abs(bar_size) >= self.average_candle_size * 2:
+        if abs(bar_size) >= self.average_candle_size * 1.5:
             if bar_size < 0 or crossover(self.data.Close, self.sma):
                 self.buy()
             elif bar_size > 0:
                 self.sell(size=2)
 
-        # print(self.average_candle_size[-1])
-        # pass
-        # Look for abnormal candle sizes
-        # if self.data.close[-1] > self.data.open[-1]:
-            # Look for a green candlestick that is 2x the average size
-            # if self.data.close[-1] > self.data.open[-2] + 2 * self.average_candle_size[-1]:
-                # self.buy()
-        # else:
-            # Look for a red candlestick that is 2x the average size
-            # if self.data.close[-1] < self.data.open[-2] - 2 * self.average_candle_size[-1]:
-                # self.sell()
 if __name__=='__main__':
     data= pd.read_csv("./data/bitcoin/1h-2022-01-01T00:00.csv")
     data.columns = [column.capitalize() for column in data.columns]
     bt= Backtest(data, RateOfChange, cash=100000, commission=.002)
     # stats=bt.optimize(maximize="Equity Final [$]", sma_period=range(4, 10))
     stats=bt.run()
+    print(stats)
     bt.plot()
