@@ -28,3 +28,4 @@ if __name__ == "__main__":
     # stats= bt.run()
     stats= bt.optimize(maximize="Equity Final [$]", timeperiod=range(50, 70, 5))
     bt.plot()
+    print(stats)

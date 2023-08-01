@@ -34,4 +34,5 @@ if __name__=="__main__":
     bt = Backtest(data, PSARStrategy, cash=100000, commission=.002)
     stats=bt.run()
     # stats= bt.optimize(maximize='Equity Final [$]', sma_period1=range(5, 15), sma_period2=range(20, 50, 5))
+    print(stats)
     bt.plot()

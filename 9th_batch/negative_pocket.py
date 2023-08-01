@@ -1,44 +1,53 @@
-from backtesting import Backtest, Strategy
 import talib
-import numpy as np
+from backtesting import Backtest, Strategy
 import pandas as pd
 
-# Define the trading strategy
-import talib
-from backtesting import Backtest, Strategy
-from backtesting.lib import crossover, cross
-
 class NPOCStrategy(Strategy):
+    nPOC_period = 20  # Number of periods to calculate nPOC
     def init(self):
-        self.nPOC_period = 20  # Number of periods to calculate nPOC
-        self.fibonacci_levels = [0.618, 0.786]  # Fibonacci retracement levels
-        self.long_trade = False
-        self.short_trade = False
-
+        self.threshold = 0.95  # Price threshold to maintain a price lower than POC
+        self.fib_levels = [0.236, 0.382, 0.618]  # Fibonacci retracement levels
+        self.stop_loss = 0.02  # 2% stop loss level
+        self.take_profit = 0.03  # 3% take profit level
+        
+        # Calculate nPOC using TALib
+        self.nPOC = self.I(talib.MIDPOINT, self.data.Close, self.nPOC_period)
+        
     def next(self):
-        # Calculate negative point of control zone (nPOC)
-        nPOC = talib.VALUEAREA(self.data.High, self.data.Low, self.data.Close, self.nPOC_period)[0]
+        high = self.data.High[-1]
+        low = self.data.Low[-1]
 
-        # Check if price enters nPOC zone
-        if self.data.Close[-1] < nPOC:
-            # Calculate Fibonacci retracement levels from the current price
-            current_price = self.data.Close[-1]
-            price_range = self.data.High[-self.nPOC_period:].max() - self.data.Low[-self.nPOC_period:].min()
-            fibonacci_levels_prices = [current_price - level * price_range for level in self.fibonacci_levels]
+        # Calculate Fibonacci retracement levels
+        fib_retracements = [high - level * (high - low) for level in self.fib_levels]
 
-            # Check if price crosses golden pocket levels (between 0.618 and 0.786)
-            if crossover(self.data.Close, fibonacci_levels_prices[0]) and self.long_trade == False:
-                self.buy()
-                self.long_trade = True
-                self.short_trade = False
-            elif crossover(fibonacci_levels_prices[1], self.data.Close) and self.short_trade == False:
-                self.sell()
-                self.long_trade = False
-                self.short_trade = True
+        # Calculate the Golden Pocket level (61.8%)
+        golden_pocket = fib_retracements[-1]
+        # Enter a position if the asset enters the nPOC zone and price is lower than POC
+        if self.data.Close[-1] < self.nPOC[-1] and self.data.Close[-2] < self.nPOC[-2] and self.data.Close[-1] < self.data.Close[-2] and self.data.Close[-1] >= golden_pocket:
+            # self.buy(size=1)
+            # self.buy(sl=self.data.Close[-1]* 0.98, tp=self.data.Close[-1]* 1.03, size=1)
+            self.buy()
+        
 
-if __name__ == "__main__":
-    data=pd.read_csv("./data/bitcoin/1h-2022-01-01T00:00.csv")
-    data.columns=[column.capitalize() for column in data.columns]
-    bt=Backtest(data,NegativePOCStrategy,cash=100000,commission=.002)
-    stats=bt.run()
-    bt.plot()
+        # Exit the position if price reaches the threshold
+        elif self.data.Close[-1] > self.data.Close[-2] * self.threshold:
+            # self.sell(size=1)
+            # self.sell(size=1)
+            self.sell(size=5)
+
+
+
+
+# Load the historical price data
+# Assuming you have a CSV file containing OHLC data with a column named 'Close'
+data = pd.read_csv('./data/ethereum/1h-2022-01-01T00:00.csv')
+data.columns=[column.capitalize() for column in data.columns]
+
+# Initialize and run the backtest
+bt = Backtest(data, NPOCStrategy, cash=100000)
+# bt.run()
+stats= bt.optimize(maximize="Equity Final [$]", nPOC_period=range(10, 50, 10))
+print(stats)
+
+# Evaluate the backtest results
+bt.plot()
